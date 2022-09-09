@@ -18,9 +18,21 @@ app.UseHttpsRedirection();
 
 app.MapPost("/httpcontext/fileupload", (HttpContext ctx) =>
 {
+    if (!ctx.Request.Form.Files.Any())
+        return Results.BadRequest("No files");
 
+    foreach (var file in ctx.Request.Form.Files)
+    {
+        using (var stream = new FileStream(@"C:\temp\" + file.FileName, FileMode.Create))
+        {
+            file.CopyTo(stream);
+        }
+    }
+
+    return Results.Ok("Files uploaded");
 });
 
+// This won't play nice with swagger
 app.MapPost("/httprequest/fileupload", (HttpRequest req) =>
 {
     if (!req.Form.Files.Any())
@@ -28,7 +40,7 @@ app.MapPost("/httprequest/fileupload", (HttpRequest req) =>
 
     foreach(var file in req.Form.Files)
     {
-        using(var stream = new FileStream(@"C:\temp", FileMode.Create))
+        using(var stream = new FileStream(@"C:\temp\"+ file.FileName, FileMode.Create))
         {
             file.CopyTo(stream);
         }
